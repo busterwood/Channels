@@ -11,6 +11,9 @@ namespace BusterWood.Channels
         Receiver<T> _receiver;
         CancellationToken _closed;
 
+        /// <summary>Has <see cref="Close"/> been called to shut down the channel?</summary>
+        public bool IsClosed => _closed.IsCancellationRequested;
+
         /// <summary>Closing a channel prevents any further values being sent and will cancel the tasks of any waiting receviers, <see cref="ReceiveAsync"/></summary>
         public void Close()
         {
