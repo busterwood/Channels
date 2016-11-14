@@ -163,5 +163,43 @@ namespace UnitTests
             if (!rt.IsCanceled)
                 Assert.Fail("ReceiveAsync is not cancelled");
         }
+
+        [Test]
+        public void closing_the_channel_with_a_waiting_sender_does_not_cancel_the_senders_task()
+        {
+            var ch = new Channel<int>();
+            var st = ch.SendAsync(2);
+            if (st == null)
+                Assert.Fail("returned task was null");
+            if (st.IsCompleted)
+                Assert.Fail("returned task was complete already!");
+            ch.Close();
+            if (st.Wait(100))
+                Assert.Fail("task completed, it should just wait");
+        }
+
+        [Test]
+        public void closing_the_channel_with_a_waiting_receiver_cancel_the_receivers_task()
+        {
+            var ch = new Channel<int>();
+            var rt = ch.ReceiveAsync();
+            if (rt == null)
+                Assert.Fail("returned task was null");
+            if (rt.IsCompleted)
+                Assert.Fail("returned task was complete already!");
+            ch.Close();
+            try
+            {
+                if (!rt.Wait(100))
+                    Assert.Fail("task did not completed");
+            }
+            catch (AggregateException)
+            {
+                if (!rt.IsCanceled)
+                    Assert.Fail("task is not cancelled");
+            }
+        }
+
+
     }
 }
