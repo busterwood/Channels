@@ -10,6 +10,7 @@ namespace BusterWood.Channels
         readonly object _gate = new object();
         Sender<T> _senders;
         Receiver<T> _receiver;
+        Waiter _receiverWaiters;
         CancellationToken _closed;
 
         /// <summary>Has <see cref="Close"/> been called to shut down the channel?</summary>
@@ -85,6 +86,8 @@ namespace BusterWood.Channels
                     receiver.TrySetResult(value);
                     return Task.CompletedTask;
                 }
+                if (_receiverWaiters != null)
+                    TriggerReceiverWaiter();
                 return AddSender(value).Task;
             }
         }
@@ -98,6 +101,14 @@ namespace BusterWood.Channels
                 r.Next = null;
             }
             return r;
+        }
+
+        private void TriggerReceiverWaiter()
+        {
+            var rw = _receiverWaiters;
+            _receiverWaiters = rw.Next;
+            rw.Next = null;
+            rw.TrySetResult(true);
         }
 
         private Sender<T> AddSender(T value)
@@ -199,6 +210,54 @@ namespace BusterWood.Channels
                 r = r.Next;
             r.Next = receiver;
         }
+
+        internal void RegisterWaiter(Waiter waiter)
+        {
+            lock(_gate)
+            {
+                if (_receiverWaiters == null)
+                    _receiverWaiters = waiter;
+                else
+                    AddWaiterToList(waiter);
+
+                if (_senders != null)
+                    waiter.TrySetResult(true);
+            }
+        }
+
+        private void AddWaiterToList(Waiter waiter)
+        {
+            var rw = _receiverWaiters;
+            while (rw.Next != null)
+                rw = rw.Next;
+            rw.Next = waiter;
+        }
+
+        internal void RemoveWaiter(Waiter waiter)
+        {
+            lock (_gate)
+            {
+                if (_receiverWaiters == waiter)
+                    _receiverWaiters = waiter.Next;
+                else
+                    RemoveWaiterFromList(waiter);
+            }
+        }
+
+        private void RemoveWaiterFromList(Waiter waiter)
+        {
+            var rw = _receiverWaiters;
+            while (rw != null)
+            {
+                if (rw.Next == waiter)
+                {
+                    rw.Next = waiter.Next;
+                    waiter.Next = null;
+                    break;
+                }
+                rw = rw.Next;
+            }
+        }
     }
 
     class Sender<T> : TaskCompletionSource<bool>
@@ -217,6 +276,15 @@ namespace BusterWood.Channels
         public Receiver<T> Next; // linked list
 
         public Receiver() : base(TaskCreationOptions.RunContinuationsAsynchronously)
+        {
+        }
+    }
+
+    class Waiter : TaskCompletionSource<bool>
+    {
+        public Waiter Next; // linked list
+
+        public Waiter() : base(TaskCreationOptions.RunContinuationsAsynchronously)
         {
         }
     }
