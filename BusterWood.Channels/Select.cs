@@ -50,18 +50,18 @@ namespace BusterWood.Channels
                 // we must wait, no channels are ready
                 var waiter = new Waiter();
                 foreach (var c in cases)
-                    c.RegisterWaiter(waiter);
+                    c.AddWaiter(waiter);
                 await waiter.Task;
                 foreach (var c in cases)
-                    c.Cleanup(waiter);
+                    c.RemoveWaiter(waiter);
             }
         }
 
         interface ICase
         {
             Task<bool> TryExecuteAsync();
-            void RegisterWaiter(Waiter tcs);
-            void Cleanup(Waiter tcs);
+            void AddWaiter(Waiter tcs);
+            void RemoveWaiter(Waiter tcs);
         }
 
         class ReceiveAsyncCase<T> : ICase
@@ -87,12 +87,12 @@ namespace BusterWood.Channels
                 return true;
             }
 
-            public void RegisterWaiter(Waiter tcs)
+            public void AddWaiter(Waiter tcs)
             {
-                ch.RegisterWaiter(tcs);
+                ch.AddWaiter(tcs);
             }
 
-            public void Cleanup(Waiter tcs)
+            public void RemoveWaiter(Waiter tcs)
             {
                 ch.RemoveWaiter(tcs);
             }
@@ -119,12 +119,12 @@ namespace BusterWood.Channels
                 return False;
             }
 
-            public void RegisterWaiter(Waiter tcs)
+            public void AddWaiter(Waiter tcs)
             {
-                ch.RegisterWaiter(tcs);
+                ch.AddWaiter(tcs);
             }
 
-            public void Cleanup(Waiter tcs)
+            public void RemoveWaiter(Waiter tcs)
             {
                 ch.RemoveWaiter(tcs);
             }

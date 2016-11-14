@@ -211,7 +211,8 @@ namespace BusterWood.Channels
             r.Next = receiver;
         }
 
-        internal void RegisterWaiter(Waiter waiter)
+        /// <summary>Adds a waiter for a <see cref="Select"/></summary>
+        internal void AddWaiter(Waiter waiter)
         {
             lock(_gate)
             {
@@ -233,6 +234,7 @@ namespace BusterWood.Channels
             rw.Next = waiter;
         }
 
+        /// <summary>Removes a waiter for a <see cref="Select"/></summary>
         internal void RemoveWaiter(Waiter waiter)
         {
             lock (_gate)
