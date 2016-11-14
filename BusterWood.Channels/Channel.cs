@@ -50,14 +50,13 @@ namespace BusterWood.Channels
 
         /// <summary>Sends a value to receiver, waiting until a receiver is ready to receive</summary>
         /// <param name="value">the value to send</param>
-        /// <returns>A task that completes when the value has been sent to a receiver</returns>
-        /// <exception cref="ClosedChannelException">The returned Task may be faulted with this exception when the channel is closed or has been closed whilst the send was waiting for a receiver</exception>
+        /// <returns>A task that completes when the value has been sent to a receiver.  The returned task may be cancelled if the channel is closed</returns>
         public Task SendAsync(T value)
         {
             lock(_gate)
             {
                 if (_closed.IsCancellationRequested)
-                    return Task.FromException(new ClosedChannelException());
+                    return Task.FromCanceled(_closed);
                 var receiver = RemoveReceiver();
                 if (receiver == null)
                     return AddSender(value).Task;

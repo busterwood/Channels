@@ -122,18 +122,15 @@ namespace UnitTests
         }
 
         [Test]
-        public void sendAsync_on_a_closed_channel_returns_an_exception()
+        public void sendAsync_on_a_closed_channel_returns_a_cancelled_task()
         {
             var ch = new Channel<int>();
             ch.Close();
             var st = ch.SendAsync(2);
             if (st == null)
                 Assert.Fail("returned task was null");
-            if (!st.IsFaulted)
-                Assert.Fail("returned task was not faulted");
-            var aggEx = st.Exception as AggregateException;
-            if (!(aggEx.InnerException is ClosedChannelException))
-                Assert.Fail("expected a ClosedChannelException but was " + aggEx.InnerException);
+            if (!st.IsCanceled)
+                Assert.Fail("returned task was not cancelled");
         }
 
         [Test]
