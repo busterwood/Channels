@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusterWood.Channels", "BusterWood.Channels\BusterWood.Channels.csproj", "{A96C97B4-F7A1-454D-9B20-20DB4444B344}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3F69DF18-C960-43D3-9970-F613639FA1B8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A96C97B4-F7A1-454D-9B20-20DB4444B344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A96C97B4-F7A1-454D-9B20-20DB4444B344}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A96C97B4-F7A1-454D-9B20-20DB4444B344}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A96C97B4-F7A1-454D-9B20-20DB4444B344}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F69DF18-C960-43D3-9970-F613639FA1B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F69DF18-C960-43D3-9970-F613639FA1B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F69DF18-C960-43D3-9970-F613639FA1B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F69DF18-C960-43D3-9970-F613639FA1B8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
