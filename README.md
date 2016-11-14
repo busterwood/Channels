@@ -1,5 +1,5 @@
 # BusterWood.Channels
-Async CSP-like channels for .NET 4.6 or above.
+[CSP-like](https://en.wikipedia.org/wiki/Communicating_sequential_processes) channels for .NET 4.6 or above.
 
 The `Channel<T>` has the following methods:
 
