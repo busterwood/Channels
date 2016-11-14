@@ -1,7 +1,8 @@
 # BusterWood.Channels
 [CSP-like](https://en.wikipedia.org/wiki/Communicating_sequential_processes) channels for .NET 4.6 or above.
 
-The `Channel<T>` has the following methods:
+## `Channel<T>` class 
+The `Channel<T>`class is used for sending and receiving values between threads (or logical async threads) and has the following methods:
 
 * `T Receive()` reads a value from the channel, blocking until a sender has sent a value.
 * `Task<T> ReceiveAsync()` reads a value from the channel, the returned task will only complete when a sender has written the value to the channel.
@@ -11,3 +12,10 @@ The `Channel<T>` has the following methods:
 * `bool TrySend(T)` attempts to write a value to the channel, returns FALSE is no receiver is ready.
 * `void Close()` prevents any further attempts to send to the channel
 * `bool IsClosed` has the channel been closed?
+
+## `Select` class 
+The `Select `class is used for reading from one of many possible channels, has the following methods:
+
+* `Select Receive<T>(Channel<T>, Action<T>)` builder method that adds an case to the select that executes a (synchronous) action when the channel is read.
+* `Select ReceiveAsync<T>(Channel<T>, Func<T, Task>)` builder method that adds an case to the select that executes an *asynchronous* action when the channel is read.
+* `Task ExecuteAsync()` reads from one (and only one) of the channels and executes the associated action.
