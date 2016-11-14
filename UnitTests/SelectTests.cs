@@ -79,5 +79,43 @@ namespace UnitTests
             if (got2.Task.Wait(50))
                 Assert.Fail("did not expect value in ch2");
         }
+
+        [Test]
+        public void if_more_that_once_case_is_ready_then_the_first_one_added_is_chose()
+        {
+            var ch1 = new Channel<int>();
+            var ch2 = new Channel<int>();
+
+            var got1 = new TaskCompletionSource<int>();
+            var got2 = new TaskCompletionSource<int>();
+            var select = new Select()
+                .Receive(ch1, val => got1.TrySetResult(val))
+                .Receive(ch2, val => got2.TrySetResult(val));
+
+            var sendTask1 = ch1.SendAsync(1);
+            var sendTask2 = ch2.SendAsync(2);
+
+            var selTask = select.ExecuteAsync();
+            if (!selTask.IsCompleted)
+                Assert.Fail("Expected select to wait, status = " + selTask.Status);
+
+            if (!got1.Task.Wait(100))
+                Assert.Fail("did not get the value to the TCS");
+
+            if (got1.Task.Result != 1)
+                Assert.Fail("Expected ch1 to get 1 but got " + got1.Task.Result);
+
+            if (!selTask.IsCompleted)
+                Assert.Fail("Expected select to be compelte");
+
+            if (!sendTask1.IsCompleted)
+                Assert.Fail("Expected select to be compelte");
+
+            if (got2.Task.Wait(50))
+                Assert.Fail("did not expect value in ch2");
+
+            if (sendTask2.IsCompleted)
+                Assert.Fail("Expected send 2 to be waiting");
+        }
     }
 }
