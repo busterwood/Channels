@@ -1,5 +1,6 @@
 ﻿using BusterWood.Channels;
 using NUnit.Framework;
+using System;
 
 namespace UnitTests
 {
@@ -120,5 +121,50 @@ namespace UnitTests
                 Assert.Fail("received value (" + rt.Result + ") is not what we sent (2)");
         }
 
+        [Test]
+        public void sendAsync_on_a_closed_channel_returns_an_exception()
+        {
+            var ch = new Channel<int>();
+            ch.Close();
+            var st = ch.SendAsync(2);
+            if (st == null)
+                Assert.Fail("returned task was null");
+            if (!st.IsFaulted)
+                Assert.Fail("returned task was not faulted");
+            var aggEx = st.Exception as AggregateException;
+            if (!(aggEx.InnerException is ClosedChannelException))
+                Assert.Fail("expected a ClosedChannelException but was " + aggEx.InnerException);
+        }
+
+        [Test]
+        public void trySend_on_a_closed_channel_returns_false()
+        {
+            var ch = new Channel<int>();
+            ch.Close();
+            if (ch.TrySend(2) != false)
+                Assert.Fail("was able to send on closed channel");
+        }
+
+        [Test]
+        public void try_receive_on_a_closed_channel_return_false()
+        {
+            var ch = new Channel<int>();
+            ch.Close();
+            int val;
+            if (ch.TryReceive(out val) != false)
+                Assert.Fail("was able to receive on closed channel");
+        }
+
+        [Test]
+        public void ReceiveAsync_on_a_closed_channel_return_cancelled_task()
+        {
+            var ch = new Channel<int>();
+            ch.Close();
+            var rt = ch.ReceiveAsync();
+            if (rt == null)
+                Assert.Fail("ReceiveAsync returned null");
+            if (!rt.IsCanceled)
+                Assert.Fail("ReceiveAsync is not cancelled");
+        }
     }
 }
