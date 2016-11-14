@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BusterWood.Channels
@@ -12,7 +13,10 @@ namespace BusterWood.Channels
         CancellationToken _closed;
 
         /// <summary>Has <see cref="Close"/> been called to shut down the channel?</summary>
-        public bool IsClosed => _closed.IsCancellationRequested;
+        public bool IsClosed
+        {
+            get { return _closed.IsCancellationRequested; }
+        }
 
         /// <summary>Closing a channel prevents any further values being sent and will cancel the tasks of any waiting receviers, <see cref="ReceiveAsync"/></summary>
         public void Close()
@@ -51,7 +55,22 @@ namespace BusterWood.Channels
             }
         }
 
-        /// <summary>Sends a value to receiver, waiting until a receiver is ready to receive</summary>
+        /// <summary>Synchronously sends a value to receiver, waiting until a receiver is ready to receive</summary>
+        /// <param name="value">the value to send</param>
+        /// <exception cref="OperationCanceledException">thrown when the channel <see cref="IsClosed"/></exception>
+        public void Send(T value)
+        {
+            try
+            {
+                SendAsync(value).Wait();
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.InnerException;
+            }
+        }
+
+        /// <summary>Asynchronously sends a value to receiver, waiting until a receiver is ready to receive</summary>
         /// <param name="value">the value to send</param>
         /// <returns>A task that completes when the value has been sent to a receiver.  The returned task may be cancelled if the channel is closed</returns>
         public Task SendAsync(T value)
@@ -61,10 +80,12 @@ namespace BusterWood.Channels
                 if (_closed.IsCancellationRequested)
                     return Task.FromCanceled(_closed);
                 var receiver = RemoveReceiver();
-                if (receiver == null)
-                    return AddSender(value).Task;
-                receiver.TrySetResult(value);
-                return Task.CompletedTask;
+                if (receiver != null)
+                {
+                    receiver.TrySetResult(value);
+                    return Task.CompletedTask;
+                }
+                return AddSender(value).Task;
             }
         }
 
@@ -116,22 +137,37 @@ namespace BusterWood.Channels
             }
         }
 
-        /// <summary>Receives a value, waiting for a sender is one is not ready</summary>
+        /// <summary>Synchronously receives a value, waiting for a sender is one is not ready</summary>
+        /// <returns>The value that was sent</returns>
+        /// <exception cref="OperationCanceledException">thrown when the channel <see cref="IsClosed"/> and there are no waiting senders</exception>
+        public T Receive()
+        {
+            try
+            {
+                return ReceiveAsync().Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.InnerException;
+            }
+        }
+
+        /// <summary>Asynchronously receives a value, waiting for a sender is one is not ready</summary>
         /// <returns>A task that completes with a result when a sender is ready.  The task may also be cancelled is the channel is closed and there are no waiting senders</returns>
         public Task<T> ReceiveAsync()
         {
             lock (_gate)
             {
                 var sender = RemoveSender();
-                if (sender == null)
+                if (sender != null)
                 {
-                    if (_closed.IsCancellationRequested)
-                        return Task.FromCanceled<T>(_closed);
-                    return AddReceiver().Task;
+                    var value = sender.Value;
+                    sender.TrySetResult(true);
+                    return Task.FromResult(value);
                 }
-                var value = sender.Value;
-                sender.TrySetResult(true);
-                return Task.FromResult(value);
+                if (_closed.IsCancellationRequested)
+                    return Task.FromCanceled<T>(_closed);
+                return AddReceiver().Task;
             }
         }
 
