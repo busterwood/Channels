@@ -200,6 +200,20 @@ namespace UnitTests
             }
         }
 
-
+        [Test]
+        public void memory()
+        {
+            var before = GC.GetTotalMemory(true);
+            var chans = new Channel<int>[10000];
+            for (int i = 0; i < chans.Length; i++)
+            {
+                chans[i] = new Channel<int>();
+            }
+            var after = GC.GetTotalMemory(true);
+            GC.KeepAlive(chans);
+            var diff = after - before - (chans.Length * 4);
+            var kb = diff / 1024;
+            Console.WriteLine("10,000 changes takes " + kb + "KB");
+        }
     }
 }

@@ -8,9 +8,9 @@ namespace BusterWood.Channels
     public class Channel<T> : IReceiver<T>, ISender<T>
     {
         readonly object _gate = new object();
-        Sender<T> _senders; // linked list
-        Receiver<T> _receivers; // linked list
-        Waiter _receiverWaiters; // linked list
+        LinkedQueue<Sender<T>> _senders;        // senders waiting for a receiver
+        LinkedQueue<Receiver<T>> _receivers;    // receivers waiting for a sender
+        LinkedQueue<Waiter> _receiverWaiters;   // selects waiting to receive
         CancellationToken _closed;
 
         /// <summary>Has <see cref="Close"/> been called to shut down the channel?</summary>
@@ -35,9 +35,9 @@ namespace BusterWood.Channels
 
         void CancelAllWaitingReceivers()
         {
-            for (var r = _receivers; r != null; r = r.Next)
+            for (var r = _receivers.Head; r != null; r = r.Next)
                 r.TrySetCanceled(_closed);
-            _receivers = null;
+            _receivers = new LinkedQueue<Receiver<T>>();
         }
 
         /// <summary>Tries to send a value to a waiting receiver.</summary>
@@ -49,7 +49,7 @@ namespace BusterWood.Channels
             {
                 if (_closed.IsCancellationRequested)
                     return false;
-                var receiver = RemoveReceiver();
+                var receiver = Queue.Dequeue(ref _receivers);
                 if (receiver == null)
                     return false;
                 return receiver.TrySetResult(value);
@@ -80,53 +80,25 @@ namespace BusterWood.Channels
             {
                 if (_closed.IsCancellationRequested)
                     return Task.FromCanceled(_closed);
-                var receiver = RemoveReceiver();
+
+                // if there is a waiting receiver then exchange now
+                var receiver = Queue.Dequeue(ref _receivers);
                 if (receiver != null)
                 {
                     receiver.TrySetResult(value);
                     return Task.CompletedTask;
                 }
-                if (_receiverWaiters != null)
-                    TriggerReceiverWaiter();
-                return AddSender(value).Task;
+
+                // if there is a select waiting then signal a value is ready
+                var waiter = Queue.Dequeue(ref _receiverWaiters);
+                if (waiter != null)
+                    waiter.TrySetResult(true);
+
+                // the sender must wait
+                var sender = new Sender<T>(value);
+                Queue.Enqueue(ref _senders, sender);
+                return sender.Task;
             }
-        }
-
-        Receiver<T> RemoveReceiver()
-        {
-            var r = _receivers;
-            if (r != null)
-            {
-                _receivers = r.Next;
-                r.Next = null;
-            }
-            return r;
-        }
-
-        void TriggerReceiverWaiter()
-        {
-            var rw = _receiverWaiters;
-            _receiverWaiters = rw.Next;
-            rw.Next = null;
-            rw.TrySetResult(true);
-        }
-
-        Sender<T> AddSender(T value)
-        {
-            var sender = new Sender<T>(value);
-            if (_senders == null)
-                _senders = sender;
-            else
-                AddSenderToEndOfList(sender);
-            return sender;
-        }
-
-        void AddSenderToEndOfList(Sender<T> sender)
-        {
-            var s = _senders;
-            while (s.Next != null)
-                s = s.Next;
-            s.Next = sender;
         }
 
         /// <summary>Tries to receive a value from a waiting sender.</summary>
@@ -136,7 +108,7 @@ namespace BusterWood.Channels
         {
             lock (_gate)
             {
-                var sender = RemoveSender();
+                var sender = Queue.Dequeue(ref _senders);
                 if (sender == null)
                 {
                     value = default(T);
@@ -169,46 +141,24 @@ namespace BusterWood.Channels
         {
             lock (_gate)
             {
-                var sender = RemoveSender();
+                // if there is a waiting sender then exchange values now
+                var sender = Queue.Dequeue(ref _senders);
                 if (sender != null)
                 {
                     var value = sender.Value;
                     sender.TrySetResult(true);
                     return Task.FromResult(value);
                 }
+
+                // if the channel has been closed then return a cancelled task
                 if (_closed.IsCancellationRequested)
                     return Task.FromCanceled<T>(_closed);
-                return AddReceiver().Task;
+
+                // the receiver must wait
+                var r = new Receiver<T>();
+                Queue.Enqueue(ref _receivers, r);
+                return r.Task;
             }
-        }
-
-        Sender<T> RemoveSender()
-        {
-            var s = _senders;
-            if (s != null)
-            {
-                _senders = s.Next;
-                s.Next = null;
-            }
-            return s;
-        }
-
-        Receiver<T> AddReceiver()
-        {
-            var r = new Receiver<T>();
-            if (_receivers == null)
-                _receivers = r;
-            else
-                AddReceiverToEndOfList(r);
-            return r;
-        }
-
-        void AddReceiverToEndOfList(Receiver<T> receiver)
-        {
-            var r = _receivers;
-            while (r.Next != null)
-                r = r.Next;
-            r.Next = receiver;
         }
 
         /// <summary>Adds a waiter for a <see cref="Select"/></summary>
@@ -216,22 +166,12 @@ namespace BusterWood.Channels
         {
             lock (_gate)
             {
-                if (_receiverWaiters == null)
-                    _receiverWaiters = waiter;
-                else
-                    AddWaiterToList(waiter);
+                Queue.Enqueue(ref _receiverWaiters, waiter);
 
-                if (_senders != null)
+                // if there is a waiting sender then signal the select to wake up
+                if (_senders.Head != null)
                     waiter.TrySetResult(true);
             }
-        }
-
-        void AddWaiterToList(Waiter waiter)
-        {
-            var rw = _receiverWaiters;
-            while (rw.Next != null)
-                rw = rw.Next;
-            rw.Next = waiter;
         }
 
         /// <summary>Removes a waiter for a <see cref="Select"/></summary>
@@ -239,32 +179,14 @@ namespace BusterWood.Channels
         {
             lock (_gate)
             {
-                if (_receiverWaiters == waiter)
-                    _receiverWaiters = waiter.Next;
-                else
-                    RemoveWaiterFromList(waiter);
-            }
-        }
-
-        void RemoveWaiterFromList(Waiter waiter)
-        {
-            var rw = _receiverWaiters;
-            while (rw != null)
-            {
-                if (rw.Next == waiter)
-                {
-                    rw.Next = waiter.Next;
-                    waiter.Next = null;
-                    break;
-                }
-                rw = rw.Next;
+                Queue.Remove(ref _receiverWaiters, waiter);
             }
         }
     }
 
-    class Sender<T> : TaskCompletionSource<bool>
+    class Sender<T> : TaskCompletionSource<bool>, INext<Sender<T>>
     {
-        public Sender<T> Next; // linked list
+        public Sender<T> Next { get; set; } // linked list
         public readonly T Value;
 
         public Sender(T value) : base(TaskCreationOptions.RunContinuationsAsynchronously)
@@ -273,18 +195,18 @@ namespace BusterWood.Channels
         }
     }
 
-    class Receiver<T> : TaskCompletionSource<T>
+    class Receiver<T> : TaskCompletionSource<T>, INext<Receiver<T>>
     {
-        public Receiver<T> Next; // linked list
+        public Receiver<T> Next { get; set; } // linked list
 
         public Receiver() : base(TaskCreationOptions.RunContinuationsAsynchronously)
         {
         }
     }
 
-    class Waiter : TaskCompletionSource<bool>
+    class Waiter : TaskCompletionSource<bool>, INext<Waiter>
     {
-        public Waiter Next; // linked list
+        public Waiter Next { get; set; } // linked list
 
         public Waiter() : base(TaskCreationOptions.RunContinuationsAsynchronously)
         {
