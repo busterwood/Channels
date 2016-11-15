@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 namespace BusterWood.Channels
 {
     /// <summary>A channel for communicating between two asynchronous threads.</summary>
-    public class Channel<T>
+    public class Channel<T> : IReceiver<T>, ISender<T>
     {
         readonly object _gate = new object();
-        Sender<T> _senders;
-        Receiver<T> _receiver;
-        Waiter _receiverWaiters;
+        Sender<T> _senders; // linked list
+        Receiver<T> _receivers; // linked list
+        Waiter _receiverWaiters; // linked list
         CancellationToken _closed;
 
         /// <summary>Has <see cref="Close"/> been called to shut down the channel?</summary>
@@ -33,11 +33,11 @@ namespace BusterWood.Channels
             }
         }
 
-        private void CancelAllWaitingReceivers()
+        void CancelAllWaitingReceivers()
         {
-            for (var r = _receiver; r != null; r = r.Next)
+            for (var r = _receivers; r != null; r = r.Next)
                 r.TrySetCanceled(_closed);
-            _receiver = null;
+            _receivers = null;
         }
 
         /// <summary>Tries to send a value to a waiting receiver.</summary>
@@ -76,7 +76,7 @@ namespace BusterWood.Channels
         /// <returns>A task that completes when the value has been sent to a receiver.  The returned task may be cancelled if the channel is closed</returns>
         public Task SendAsync(T value)
         {
-            lock(_gate)
+            lock (_gate)
             {
                 if (_closed.IsCancellationRequested)
                     return Task.FromCanceled(_closed);
@@ -92,18 +92,18 @@ namespace BusterWood.Channels
             }
         }
 
-        private Receiver<T> RemoveReceiver()
+        Receiver<T> RemoveReceiver()
         {
-            var r = _receiver;
+            var r = _receivers;
             if (r != null)
             {
-                _receiver = r.Next;
+                _receivers = r.Next;
                 r.Next = null;
             }
             return r;
         }
 
-        private void TriggerReceiverWaiter()
+        void TriggerReceiverWaiter()
         {
             var rw = _receiverWaiters;
             _receiverWaiters = rw.Next;
@@ -111,7 +111,7 @@ namespace BusterWood.Channels
             rw.TrySetResult(true);
         }
 
-        private Sender<T> AddSender(T value)
+        Sender<T> AddSender(T value)
         {
             var sender = new Sender<T>(value);
             if (_senders == null)
@@ -121,7 +121,7 @@ namespace BusterWood.Channels
             return sender;
         }
 
-        private void AddSenderToEndOfList(Sender<T> sender)
+        void AddSenderToEndOfList(Sender<T> sender)
         {
             var s = _senders;
             while (s.Next != null)
@@ -182,7 +182,7 @@ namespace BusterWood.Channels
             }
         }
 
-        private Sender<T> RemoveSender()
+        Sender<T> RemoveSender()
         {
             var s = _senders;
             if (s != null)
@@ -193,19 +193,19 @@ namespace BusterWood.Channels
             return s;
         }
 
-        private Receiver<T> AddReceiver()
+        Receiver<T> AddReceiver()
         {
             var r = new Receiver<T>();
-            if (_receiver == null)
-                _receiver = r;
+            if (_receivers == null)
+                _receivers = r;
             else
                 AddReceiverToEndOfList(r);
             return r;
         }
 
-        private void AddReceiverToEndOfList(Receiver<T> receiver)
+        void AddReceiverToEndOfList(Receiver<T> receiver)
         {
-            var r = _receiver;
+            var r = _receivers;
             while (r.Next != null)
                 r = r.Next;
             r.Next = receiver;
@@ -214,7 +214,7 @@ namespace BusterWood.Channels
         /// <summary>Adds a waiter for a <see cref="Select"/></summary>
         internal void AddWaiter(Waiter waiter)
         {
-            lock(_gate)
+            lock (_gate)
             {
                 if (_receiverWaiters == null)
                     _receiverWaiters = waiter;
@@ -226,7 +226,7 @@ namespace BusterWood.Channels
             }
         }
 
-        private void AddWaiterToList(Waiter waiter)
+        void AddWaiterToList(Waiter waiter)
         {
             var rw = _receiverWaiters;
             while (rw.Next != null)
@@ -246,7 +246,7 @@ namespace BusterWood.Channels
             }
         }
 
-        private void RemoveWaiterFromList(Waiter waiter)
+        void RemoveWaiterFromList(Waiter waiter)
         {
             var rw = _receiverWaiters;
             while (rw != null)

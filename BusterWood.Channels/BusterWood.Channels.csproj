@@ -33,6 +33,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Channel.cs" />
+    <Compile Include="IReceiver.cs" />
+    <Compile Include="ISender.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Select.cs" />
   </ItemGroup>

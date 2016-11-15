@@ -21,8 +21,8 @@ namespace UnitTests
             var got1 = new TaskCompletionSource<int>();
             var got2 = new TaskCompletionSource<int>();
             var select = new Select()
-                .Receive(ch1, val => got1.TrySetResult(val))
-                .Receive(ch2, val => got2.TrySetResult(val));
+                .OnReceive(ch1, val => got1.TrySetResult(val))
+                .OnReceive(ch2, val => got2.TrySetResult(val));
 
             var sendTask = ch2.SendAsync(2);
 
@@ -55,8 +55,8 @@ namespace UnitTests
             var got1 = new TaskCompletionSource<int>();
             var got2 = new TaskCompletionSource<int>();
             var select = new Select()
-                .Receive(ch1, val => got1.TrySetResult(val))
-                .Receive(ch2, val => got2.TrySetResult(val));
+                .OnReceive(ch1, val => got1.TrySetResult(val))
+                .OnReceive(ch2, val => got2.TrySetResult(val));
 
             var st = select.ExecuteAsync();
             if (st.IsCompleted)
@@ -89,8 +89,8 @@ namespace UnitTests
             var got1 = new TaskCompletionSource<int>();
             var got2 = new TaskCompletionSource<int>();
             var select = new Select()
-                .Receive(ch1, val => got1.TrySetResult(val))
-                .Receive(ch2, val => got2.TrySetResult(val));
+                .OnReceive(ch1, val => got1.TrySetResult(val))
+                .OnReceive(ch2, val => got2.TrySetResult(val));
 
             var sendTask1 = ch1.SendAsync(1);
             var sendTask2 = ch2.SendAsync(2);
