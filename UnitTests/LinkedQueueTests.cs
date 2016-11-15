@@ -94,7 +94,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void removing_one_item_from_a_queue_of_two_sets_the_head_and_tail_to_the_remaining_item()
+        public void removing_first_item_from_a_queue_of_two_sets_the_head_and_tail_to_the_remaining_item()
         {
             var q = new LinkedQueue<Waiter>();
             var win1 = new Waiter();
@@ -105,6 +105,21 @@ namespace UnitTests
             if (q.Head != win2)
                 Assert.Fail("Head is " + q.Head);
             if (q.Tail != win2)
+                Assert.Fail("Tail is " + q.Tail);
+        }
+
+        [Test]
+        public void removing_last_item_from_a_queue_of_two_sets_the_head_and_tail_to_the_remaining_item()
+        {
+            var q = new LinkedQueue<Waiter>();
+            var win1 = new Waiter();
+            var win2 = new Waiter();
+            Queue.Enqueue(ref q, win1);
+            Queue.Enqueue(ref q, win2);
+            Queue.Remove(ref q, win2);
+            if (q.Head != win1)
+                Assert.Fail("Head is " + q.Head);
+            if (q.Tail != win1)
                 Assert.Fail("Tail is " + q.Tail);
         }
 

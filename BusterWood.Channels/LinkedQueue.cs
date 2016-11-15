@@ -56,7 +56,7 @@
                     {
                         val.Next = item.Next;
                         item.Next = null;
-                        if (q.Tail == null)
+                        if (q.Tail == item)
                             q.Tail = val;
                         break;
                     }
