@@ -1,6 +1,9 @@
 # BusterWood.Channels
 [CSP-like](https://en.wikipedia.org/wiki/Communicating_sequential_processes) channels for .NET 4.6 or above.
 
+> As its name suggests, CSP allows the description of systems in terms of component processes that operate independently, 
+> and interact with each other solely through message-passing communication.
+
 ## `Channel<T>` class 
 The `Channel<T>`class is used for sending and receiving values between threads (or logical async threads) and has the following methods:
 
@@ -16,6 +19,6 @@ The `Channel<T>`class is used for sending and receiving values between threads (
 ## `Select` class 
 The `Select `class is used for reading from one of many possible channels, has the following methods:
 
-* `Select Receive<T>(Channel<T>, Action<T>)` builder method that adds an case to the select that executes a (synchronous) action when the channel is read.
-* `Select ReceiveAsync<T>(Channel<T>, Func<T, Task>)` builder method that adds an case to the select that executes an *asynchronous* action when the channel is read.
+* `Select OnReceive<T>(Channel<T>, Action<T>)` builder method that adds an case to the select that executes a (synchronous) action when the channel is read.
+* `Select OnReceiveAsync<T>(Channel<T>, Func<T, Task>)` builder method that adds an case to the select that executes an *asynchronous* action when the channel is read.
 * `Task ExecuteAsync()` reads from one (and only one) of the channels and executes the associated action.
