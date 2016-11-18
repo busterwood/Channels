@@ -67,16 +67,16 @@ namespace UnitTests
 
             Thread.Sleep(10);
 
-            if (!ch1.SendAsync(2).Wait(100))
+            if (!ch1.SendAsync(2).Wait(200))
                 Assert.Fail("Failed to SendAsync");
 
-            if (!got1.Task.Wait(100))
+            if (!got1.Task.Wait(200))
                 Assert.Fail("did not get the value to the TCS");
 
             if (!st.IsCompleted)
                 Assert.Fail("Expected select to be compelte");
 
-            if (got2.Task.Wait(50))
+            if (got2.Task.Wait(80))
                 Assert.Fail("did not expect value in ch2");
         }
 

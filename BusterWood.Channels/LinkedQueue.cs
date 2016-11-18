@@ -7,8 +7,8 @@
 
     struct LinkedQueue<T> where T : class, INext<T>
     {
-        public T Head { get; set; }
-        public T Tail { get; set; }
+        public T Head;
+        public T Tail;
     }
 
     static class Queue
