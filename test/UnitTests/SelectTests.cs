@@ -74,7 +74,7 @@ namespace UnitTests
                 Assert.Fail("did not get the value to the TCS");
 
             if (!st.IsCompleted)
-                Assert.Fail("Expected select to be compelte");
+                Assert.Fail($"Expected select to be complete, but select is in {st.Status}");
 
             if (got2.Task.Wait(80))
                 Assert.Fail("did not expect value in ch2");
