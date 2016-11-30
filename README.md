@@ -1,7 +1,7 @@
 # BusterWood.Channels
 [![Build status](https://ci.appveyor.com/api/projects/status/3rhcyru862ynx0aj/branch/master?svg=true)](https://ci.appveyor.com/project/busterwood/busterwood-channels/branch/master)
 
-[CSP-like](https://en.wikipedia.org/wiki/Communicating_sequential_processes) channels for .NET 4.6 or above.
+[CSP-like](https://en.wikipedia.org/wiki/Communicating_sequential_processes) channels for .NET 4.6 or above and .NET Core.
 
 > As its name suggests, CSP allows the description of systems in terms of component processes that operate independently, 
 > and interact with each other solely through message-passing communication.
