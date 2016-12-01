@@ -1,17 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusterWood.Channels", "BusterWood.Channels\BusterWood.Channels.csproj", "{A96C97B4-F7A1-454D-9B20-20DB4444B344}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{17839337-861E-401E-B04D-51729BEEC4BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3F69DF18-C960-43D3-9970-F613639FA1B8}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{6B7BA621-400C-4E48-8B64-0E95A7D90173}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8C2A0237-137A-48B9-A75C-F78602808FC8}"
 	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+		Build.ps1 = Build.ps1
+		global.json = global.json
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "BusterWood.Channels", "src\BusterWood.Channels\BusterWood.Channels.xproj", "{25553BD5-8D79-4E6B-9C40-529C72F3E8B0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{C2273E4D-CF13-4F87-A3EC-646777146406}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "UnitTests", "test\UnitTests\UnitTests.xproj", "{7F6086B6-C565-420C-B618-920DB3213F9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,16 +26,20 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A96C97B4-F7A1-454D-9B20-20DB4444B344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A96C97B4-F7A1-454D-9B20-20DB4444B344}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A96C97B4-F7A1-454D-9B20-20DB4444B344}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A96C97B4-F7A1-454D-9B20-20DB4444B344}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3F69DF18-C960-43D3-9970-F613639FA1B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F69DF18-C960-43D3-9970-F613639FA1B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F69DF18-C960-43D3-9970-F613639FA1B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F69DF18-C960-43D3-9970-F613639FA1B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25553BD5-8D79-4E6B-9C40-529C72F3E8B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25553BD5-8D79-4E6B-9C40-529C72F3E8B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25553BD5-8D79-4E6B-9C40-529C72F3E8B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25553BD5-8D79-4E6B-9C40-529C72F3E8B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F6086B6-C565-420C-B618-920DB3213F9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F6086B6-C565-420C-B618-920DB3213F9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F6086B6-C565-420C-B618-920DB3213F9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F6086B6-C565-420C-B618-920DB3213F9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{25553BD5-8D79-4E6B-9C40-529C72F3E8B0} = {17839337-861E-401E-B04D-51729BEEC4BD}
+		{7F6086B6-C565-420C-B618-920DB3213F9B} = {C2273E4D-CF13-4F87-A3EC-646777146406}
 	EndGlobalSection
 EndGlobal

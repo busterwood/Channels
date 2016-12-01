@@ -1,0 +1,24 @@
+﻿{
+  "version": "1.0.0-*",
+  "dependencies": {
+
+  },
+  "packOptions": {
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "projectUrl": "https://github.com/busterwood/BusterWood.Channels",
+    "requireLicenseAcceptance": false
+  },
+  "authors": [ "BusterWood" ],
+  "description": "CSP-like channels for .NET 4.6 or above and .NET Core.",
+  "title": "BusterWood.Channels",
+  "frameworks": {
+    "netstandard1.3": {
+      "dependencies": {
+        "NETStandard.Library": "1.6.0"
+      }
+    },
+    "net4.6": {
+
+    }
+  }
+}
