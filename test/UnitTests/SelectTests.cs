@@ -73,7 +73,7 @@ namespace UnitTests
             if (!got1.Task.Wait(200))
                 Assert.Fail("did not get the value to the TCS");
 
-            if (!st.IsCompleted)
+            if (!st.Wait(100) || !st.IsCompleted)
                 Assert.Fail($"Expected select to be complete, but select is in {st.Status}");
 
             if (got2.Task.Wait(80))
