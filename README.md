@@ -27,3 +27,15 @@ The `Select `class is used for reading from one of many possible channels, has t
 * `Select OnReceive<T>(Channel<T>, Action<T>)` builder method that adds an case to the select that executes a (synchronous) action when the channel is read.
 * `Select OnReceiveAsync<T>(Channel<T>, Func<T, Task>)` builder method that adds an case to the select that executes an *asynchronous* action when the channel is read.
 * `Task ExecuteAsync()` reads from one (and only one) of the channels and executes the associated action.
+
+## Closed channels
+
+When `Close()` is called on a `Channel<T>` then:
+
+* any outstanding sends are allowed to complete
+* any *new* sends will throw an `OperationCanceledException`
+* any outstanding recevies with matching sends are allowed to complete
+* any outstanding recevies *without* matching sends will throw an `OperationCanceledException`
+* any *new* recevies will throw an `OperationCanceledException`
+
+The `bool TryReceive(out T)` and `bool TrySend(T)` methods will always return `false` when a channel `IsClosed`.
