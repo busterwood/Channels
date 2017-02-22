@@ -6,7 +6,7 @@ namespace BusterWood.Channels
     {
         /// <summary>Synchronously receives a value, waiting for a sender is one is not ready</summary>
         /// <returns>The value that was sent</returns>
-        /// <exception cref="OperationCanceledException">thrown when the channel <see cref="IsClosed"/> and there are no waiting senders</exception>
+        /// <exception cref="System.OperationCanceledException">thrown when the channel <see cref="Channel{T}.IsClosed"/> and there are no waiting senders</exception>
         T Receive();
 
         /// <summary>Asynchronously receives a value, waiting for a sender is one is not ready</summary>

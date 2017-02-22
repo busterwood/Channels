@@ -6,7 +6,7 @@ namespace BusterWood.Channels
     {
         /// <summary>Synchronously sends a value to receiver, waiting until a receiver is ready to receive</summary>
         /// <param name="value">the value to send</param>
-        /// <exception cref="OperationCanceledException">thrown when the channel <see cref="IsClosed"/></exception>
+        /// <exception cref="System.OperationCanceledException">thrown when the channel <see cref="Channel{T}.IsClosed"/></exception>
         void Send(T value);
 
         /// <summary>Asynchronously sends a value to receiver, waiting until a receiver is ready to receive</summary>
