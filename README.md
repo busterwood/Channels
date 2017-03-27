@@ -27,6 +27,7 @@ The `Select `class is used for reading from one of many possible channels, has t
 * `Select OnReceive<T>(Channel<T>, Action<T>)` builder method that adds an case to the select that executes a (synchronous) action when the channel is read.
 * `Select OnReceiveAsync<T>(Channel<T>, Func<T, Task>)` builder method that adds an case to the select that executes an *asynchronous* action when the channel is read.
 * `Task ExecuteAsync()` reads from one (and only one) of the channels and executes the associated action.
+* `Task<bool> ExecuteAsync(TimeSpan)` tries to read from one of the channels within the timeout, returns FALSE if no channel could be read within the timeout.
 
 ## Closed channels
 

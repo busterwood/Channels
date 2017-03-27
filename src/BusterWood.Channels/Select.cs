@@ -11,16 +11,15 @@ namespace BusterWood.Channels
         static readonly Task<bool> False = Task.FromResult(false);
 
         List<ICase> cases = new List<ICase>();
-        ICase[] quickCases;
 
         /// <summary>Adds a action to perform when a channel can be read</summary>
         /// <param name="ch">The channel to try to read from</param>
         /// <param name="action">the synchronous action to perform with the value that was read</param>
         public Select OnReceive<T>(Channel<T> ch, Action<T> action)
         {
-            var @case = new ReceiveCase<T>(ch, action);
-            cases.Add(@case);
-            quickCases = null;
+            if (ch == null) throw new ArgumentNullException(nameof(ch));
+            if (action == null) throw new ArgumentNullException(nameof(action));
+            cases.Add(new ReceiveCase<T>(ch, action));
             return this;
         }
 
@@ -29,24 +28,34 @@ namespace BusterWood.Channels
         /// <param name="action">the asynchronous action to perform with the value that was read</param>
         public Select OnReceiveAsync<T>(Channel<T> ch, Func<T, Task> action)
         {
-            var @case = new ReceiveAsyncCase<T>(ch, action);
-            cases.Add(@case);
-            quickCases = null;
+            if (ch == null) throw new ArgumentNullException(nameof(ch));
+            if (action == null) throw new ArgumentNullException(nameof(action));
+            cases.Add(new ReceiveAsyncCase<T>(ch, action));
             return this;
+        }
+
+        /// <summary>Tries to reads from one (and only one) of the added channels.  Does no action if the <paramref name="timeout"/> has been reached</summary>
+        /// <returns>True if an action was performed, False if no action was performed and the timeout was reached</returns>
+        public async Task<bool> ExecuteAsync(TimeSpan timeout)
+        {
+            var timedOut = false;
+            var receiveTimeout = new ReceiveCase<DateTime>(Timeout.After(timeout), _ => timedOut = true);
+            var idx = cases.Count;
+            cases.Add(receiveTimeout);
+            await ExecuteAsync();
+            cases.RemoveAt(idx);
+            return timedOut;
         }
 
         /// <summary>Reads from one (and only one) of the added channels and performs the associated action</summary>
         /// <returns>A task that completes when one channel has been read and the associated action performed</returns>
         public async Task ExecuteAsync()
         {
-            // foreach an array is faster using a list
-            if (quickCases == null)
-                quickCases = cases.ToArray();
-
+            if (cases.Count == 0) throw new InvalidOperationException("No cases have been added");
             for (;;)
             {
                 // try to execute any case that is ready
-                foreach (var c in quickCases)
+                foreach (var c in cases)
                 {
                     if (await c.TryExecuteAsync())
                         return;
@@ -54,10 +63,10 @@ namespace BusterWood.Channels
 
                 // we must wait, no channels are ready
                 var waiter = new Waiter();
-                foreach (var c in quickCases)
+                foreach (var c in cases)
                     c.AddWaiter(waiter);
                 await waiter.Task;
-                foreach (var c in quickCases)
+                foreach (var c in cases)
                     c.RemoveWaiter(waiter);
             }
         }
