@@ -38,6 +38,12 @@ namespace BusterWood.Channels
         /// <returns>True if an action was performed, False if no action was performed and the timeout was reached</returns>
         public async Task<bool> ExecuteAsync(TimeSpan timeout)
         {
+            if (timeout == System.Threading.Timeout.InfiniteTimeSpan || timeout == TimeSpan.MaxValue)
+            {
+                await ExecuteAsync();
+                return false;
+            }
+
             var timedOut = false;
             var receiveTimeout = new ReceiveCase<DateTime>(Timeout.After(timeout), _ => timedOut = true);
             var idx = cases.Count;
@@ -77,6 +83,7 @@ namespace BusterWood.Channels
             void AddWaiter(Waiter tcs);
             void RemoveWaiter(Waiter tcs);
         }
+
 
         class ReceiveAsyncCase<T> : ICase
         {
@@ -142,6 +149,18 @@ namespace BusterWood.Channels
             {
                 ch.RemoveWaiter(tcs);
             }
+        }
+    }
+
+    public static class Extensions
+    {
+        public static async Task<bool> ExecuteAsync(this Select select, TimeSpan? timeout)
+        {
+            if (timeout != null)
+                return await select.ExecuteAsync(timeout.Value);
+
+            await select.ExecuteAsync();
+            return false;
         }
     }
 }
