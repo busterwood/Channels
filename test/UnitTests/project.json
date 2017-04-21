@@ -15,10 +15,15 @@
           "version": "1.0.0-*",
           "type": "platform"
         }
+      },
+      "buildOptions": {
+        "keyFile": "../../Channels.snk"
       }
     },
     "net4.6": {
-
+      "buildOptions": {
+        "keyFile": "../../Channels.snk"
+      }
     }
   }
 }
