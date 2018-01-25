@@ -1,3 +1,8 @@
+# DEPRICATED
+
+All future development now takes place on https://github.com/busterwood/Goodies
+
+
 # BusterWood.Channels
 [![Build status](https://ci.appveyor.com/api/projects/status/3rhcyru862ynx0aj/branch/master?svg=true)](https://ci.appveyor.com/project/busterwood/busterwood-channels/branch/master) [![Nuget](https://img.shields.io/nuget/v/BusterWood.Channels.svg)](https://www.nuget.org/packages/BusterWood.Channels)
 
